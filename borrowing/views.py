@@ -1,3 +1,27 @@
-from django.shortcuts import render
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated
+from .serializers import (
+    BorrowingSerializer,
+    BorrowingListSerializer,
+    BorrowingRetrieveSerializer
+)
+from .models import Borrowing
 
-# Create your views here.
+
+class BorrowingViewSet(ModelViewSet):
+    queryset = Borrowing.objects.all()
+    serializer_class = BorrowingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = self.queryset
+        if self.action in ("list", "retrieve"):
+            return queryset.select_related("book", "user")
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return BorrowingListSerializer
+        elif self.action == "retrieve":
+            return BorrowingRetrieveSerializer
+        return BorrowingSerializer
