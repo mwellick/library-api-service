@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from book.models import Book
 from django.conf import settings
 
@@ -36,14 +36,21 @@ class Borrowing(models.Model):
             ValueError
         )
 
+    @transaction.atomic()
     def save(
-        self,
-        force_insert=False,
-        force_update=False,
-        using=None,
-        update_fields=None
+            self,
+            force_insert=False,
+            force_update=False,
+            using=None,
+            update_fields=None
     ):
         self.full_clean()
+        if not self.pk:
+            if self.book.inventory == 0:
+                raise ValueError("This book is not currently available")
+            self.book.inventory -= 1
+            self.book.save(update_fields=["inventory"])
+
         super(Borrowing, self).save(
             force_insert,
             force_update,
