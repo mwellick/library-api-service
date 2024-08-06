@@ -39,7 +39,7 @@ class BorrowingListSerializer(serializers.ModelSerializer):
 
 class BorrowingRetrieveSerializer(serializers.ModelSerializer):
     user_id = serializers.CharField(source="user.pk", read_only=True)
-    user_email = serializers.CharField(source="user.email",read_only=True)
+    user_email = serializers.CharField(source="user.email", read_only=True)
     author = serializers.CharField(source="book.author", read_only=True)
     book = serializers.CharField(source="book.title", read_only=True)
     book_cover = serializers.CharField(source="book.cover", read_only=True)
@@ -54,5 +54,22 @@ class BorrowingRetrieveSerializer(serializers.ModelSerializer):
             "author",
             "book",
             "book_cover"
+
+        ]
+
+
+class ReturnBookSerializer(serializers.ModelSerializer):
+    user_email = serializers.CharField(source="user.email", read_only=True)
+    author = serializers.CharField(source="book.author", read_only=True)
+    book_cover = serializers.CharField(source="book.cover", read_only=True)
+
+    class Meta:
+        model = Borrowing
+        fields = [
+            "borrow_date",
+            "user_email",
+            "author",
+            "book",
+            "book_cover",
 
         ]

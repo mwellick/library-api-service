@@ -35,13 +35,14 @@ class Borrowing(models.Model):
         return {"book__inventory": book_inventory}
 
     def clean(self):
-        Borrowing.can_borrow(
-            self.book.inventory,
-            self.book.title,
-            self.book.cover,
-            self.user.id,
-            ValueError
-        )
+        if not self.pk:
+            Borrowing.can_borrow(
+                self.book.inventory,
+                self.book.title,
+                self.book.cover,
+                self.user.id,
+                ValueError
+            )
 
     @transaction.atomic()
     def save(
