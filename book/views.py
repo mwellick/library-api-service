@@ -18,7 +18,7 @@ class BookViewSet(ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
-        if self.action in ["create", "update", "partial_update", "destroy"]:
+        if self.action in ["create", "update", "retrieve", "partial_update", "destroy"]:
             return BookRetrieveSerializer
         elif self.action == "list":
             return BookListSerializer
