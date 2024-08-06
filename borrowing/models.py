@@ -15,6 +15,7 @@ class Borrowing(models.Model):
             book_inventory: int,
             book_title: str,
             book_cover: str,
+            user_id: int,
             error_to_raise
     ):
         if book_inventory == 0:
@@ -22,6 +23,7 @@ class Borrowing(models.Model):
         if Borrowing.objects.filter(
                 book__title=book_title,
                 book__cover=book_cover,
+                user_id=user_id,
                 actual_return_date__isnull=True
         ).exists():
             raise error_to_raise("You have already borrowed this book and haven't returned it yet.")
@@ -33,6 +35,7 @@ class Borrowing(models.Model):
             self.book.inventory,
             self.book.title,
             self.book.cover,
+            self.user.id,
             ValueError
         )
 

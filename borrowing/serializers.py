@@ -8,15 +8,16 @@ class BorrowingSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "book",
-            "user",
             "expected_return_date"
         ]
 
     def validate(self, attrs):
+        user = self.context["request"].user
         Borrowing.can_borrow(
             attrs["book"].inventory,
             attrs["book"].title,
             attrs["book"].cover,
+            user.id,
             serializers.ValidationError,
         )
         return attrs
