@@ -69,7 +69,6 @@ class ReturnBookSerializer(serializers.ModelSerializer):
             "borrow_date",
             "user_email",
             "author",
-            "book",
             "book_cover",
 
         ]

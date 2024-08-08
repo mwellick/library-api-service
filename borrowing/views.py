@@ -1,3 +1,4 @@
+import logging
 from django.utils import timezone
 from rest_framework import status
 from django.db import transaction
@@ -58,6 +59,8 @@ class BorrowingViewSet(ModelViewSet):
             return ReturnBookSerializer
         return BorrowingSerializer
 
+    logging.debug("Starting...")
+
     @action(
         methods=["POST"],
         detail=True,
@@ -67,11 +70,6 @@ class BorrowingViewSet(ModelViewSet):
     @transaction.atomic()
     def return_book(self, request, pk=None):
         borrowing = self.get_object()
-        book_id = request.data.get("borrowing__book_id")
-        if not book_id or int(book_id) != borrowing.book.id:
-            return Response(
-                {"detail": "Choose a correct book"}
-            )
         if borrowing.actual_return_date is not None:
             return Response(
                 {"detail": "You have already returned this book"},
