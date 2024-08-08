@@ -1,4 +1,3 @@
-import logging
 from django.utils import timezone
 from rest_framework import status
 from django.db import transaction
@@ -23,6 +22,7 @@ class BorrowingViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         borrowing = serializer.save(user=self.request.user)
+
         message = (f"New borrowing has been created\n"
                    f"Borrow id: {borrowing.id}\n"
                    f"Author: {borrowing.book.author}\n"
@@ -59,8 +59,6 @@ class BorrowingViewSet(ModelViewSet):
             return ReturnBookSerializer
         return BorrowingSerializer
 
-    logging.debug("Starting...")
-
     @action(
         methods=["POST"],
         detail=True,
@@ -75,6 +73,7 @@ class BorrowingViewSet(ModelViewSet):
                 {"detail": "You have already returned this book"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
         serializer = self.get_serializer(
             borrowing,
             data=request.data,
@@ -82,11 +81,14 @@ class BorrowingViewSet(ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
         book = borrowing.book
         book.inventory += 1
+
         borrowing.actual_return_date = timezone.now()
         borrowing.save()
         book.save()
+
         message = (f"{borrowing.user.email} has returned book "
                    f"{borrowing.book.title}(cover: {borrowing.book.cover}) "
                    f"from {borrowing.borrow_date}\n"
