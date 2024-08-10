@@ -1,26 +1,39 @@
 import os
 import stripe
+from django.http import JsonResponse
 from django.db import transaction
 from django.conf import settings
 from django.urls import reverse
 from dotenv import load_dotenv
 from .models import Payment
+from .calculations import (
+    calculate_borrowing_amount,
+    borrow_days
+)
 
 load_dotenv()
 
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 
 
+@transaction.atomic()
 def create_checkout_session(borrowing):
-    total_price = 2
-    unit_amount = 2
+    days_of_borrow = borrow_days(
+        borrowing.borrow_date,
+        borrowing.expected_return_date,
+
+    )
+    total_price = calculate_borrowing_amount(
+        days_of_borrow,
+        borrowing.book.daily_fee
+    )
     checkout_session = stripe.checkout.Session.create(
         payment_method_types=["card"],
         line_items=[
             {
                 "price_data": {
                     "currency": "usd",
-                    "unit_amount": int(unit_amount * 100),
+                    "unit_amount": int(total_price * 100),
                     "product_data": {
                         "name": borrowing.book.title,
                     },
@@ -36,7 +49,7 @@ def create_checkout_session(borrowing):
     session_id = checkout_session.id
     session_url = checkout_session.url
 
-    create_payment = Payment.objects.create(
+    Payment.objects.create(
         status=Payment.Status.PENDING,
         type=Payment.Type.PAYMENT,
         borrowing=borrowing,
@@ -45,4 +58,8 @@ def create_checkout_session(borrowing):
         money_to_pay=total_price
     )
 
-    return create_payment
+    return JsonResponse(
+        {
+            "id": checkout_session.id
+        }
+    )
