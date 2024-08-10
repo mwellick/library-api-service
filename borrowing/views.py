@@ -5,6 +5,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from payment.stripe_payment import create_checkout_session
 from .serializers import (
     BorrowingSerializer,
     BorrowingListSerializer,
@@ -20,8 +21,10 @@ class BorrowingViewSet(ModelViewSet):
     serializer_class = BorrowingSerializer
     permission_classes = [IsAuthenticated]
 
+    @transaction.atomic()
     def perform_create(self, serializer):
         borrowing = serializer.save(user=self.request.user)
+        create_checkout_session(borrowing)
 
         message = (f"New borrowing has been created\n"
                    f"Borrow id: {borrowing.id}\n"
