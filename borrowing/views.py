@@ -5,6 +5,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from payment.calculations import calculate_fine
 from payment.stripe_payment import create_checkout_session
 from .serializers import (
     BorrowingSerializer,
@@ -88,14 +89,33 @@ class BorrowingViewSet(ModelViewSet):
         book = borrowing.book
         book.inventory += 1
 
-        borrowing.actual_return_date = timezone.now()
+        borrowing.actual_return_date = timezone.now().date()
         borrowing.save()
         book.save()
-
-        message = (f"{borrowing.user.email} has returned book "
-                   f"{borrowing.book.title}(cover: {borrowing.book.cover}) "
-                   f"from {borrowing.borrow_date}\n"
-                   f"Borrowing id: {borrowing.id}\n"
-                   f"Return date: {borrowing.actual_return_date}")
-        send_message(message)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if borrowing.actual_return_date > borrowing.expected_return_date:
+            fine = calculate_fine(
+                borrowing.expected_return_date,
+                borrowing.actual_return_date,
+                borrowing.book.daily_fee
+            )
+            message = (f"{borrowing.user.email} has returned book "
+                       f"{borrowing.book.title}(cover: {borrowing.book.cover}) "
+                       f"from {borrowing.borrow_date}\n"
+                       f"Borrowing id: {borrowing.id}\n"
+                       f"Return date: {borrowing.actual_return_date}\n"
+                       f"{borrowing.user.email} has to pay {fine}$ fine")
+            send_message(message)
+            return Response(
+                {"attention": f"Please,pay {fine}$ fine"}
+            )
+        else:
+            message = (f"{borrowing.user.email} has returned book "
+                       f"{borrowing.book.title}(cover: {borrowing.book.cover}) "
+                       f"from {borrowing.borrow_date}\n"
+                       f"Borrowing id: {borrowing.id}\n"
+                       f"Return date: {borrowing.actual_return_date}")
+            send_message(message)
+        return Response(
+            {"detail": "Book returned in time, no fine required."},
+            status=status.HTTP_200_OK
+        )
