@@ -9,7 +9,6 @@ from .views import (
 router = routers.DefaultRouter()
 router.register("", PaymentViewSet)
 urlpatterns = [
-    path("", include(router.urls)),
     path(
         "success?session_id={CHECKOUT_SESSION_ID}",
         PaymentSuccessView.as_view(),
@@ -20,6 +19,8 @@ urlpatterns = [
         PaymentCancelView.as_view(),
         name="payment-cancel"
     ),
+    path("", include(router.urls)),
+
 ]
 
 app_name = "payments"
