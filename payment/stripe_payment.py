@@ -59,6 +59,7 @@ def create_payment_session(borrowing, amount, payment_tipe):
     )
 
 
+@transaction.atomic()
 def create_checkout_session(borrowing):
     days_of_borrow = borrow_days(
         borrowing.borrow_date,
@@ -73,4 +74,18 @@ def create_checkout_session(borrowing):
         borrowing,
         total_price,
         Payment.Type.PAYMENT
+    )
+
+
+@transaction.atomic()
+def create_fine_payment(borrowing):
+    fine = calculate_fine(
+        borrowing.expected_return_date,
+        borrowing.actual_return_date,
+        borrowing.book.daily_fee
+    )
+    return create_payment_session(
+        borrowing,
+        fine,
+        Payment.Type.FINE
     )

@@ -17,8 +17,6 @@ from .serializers import (
 load_dotenv()
 
 
-
-
 class PaymentViewSet(ModelViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer

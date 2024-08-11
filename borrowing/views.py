@@ -6,7 +6,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from payment.calculations import calculate_fine
-from payment.stripe_payment import create_checkout_session
+from payment.stripe_payment import (
+    create_checkout_session,
+    create_fine_payment
+)
 from .serializers import (
     BorrowingSerializer,
     BorrowingListSerializer,
@@ -92,6 +95,7 @@ class BorrowingViewSet(ModelViewSet):
         borrowing.actual_return_date = timezone.now().date()
         borrowing.save()
         book.save()
+
         if borrowing.actual_return_date > borrowing.expected_return_date:
             fine = calculate_fine(
                 borrowing.expected_return_date,
@@ -104,7 +108,10 @@ class BorrowingViewSet(ModelViewSet):
                        f"Borrowing id: {borrowing.id}\n"
                        f"Return date: {borrowing.actual_return_date}\n"
                        f"{borrowing.user.email} has to pay {fine}$ fine")
+
             send_message(message)
+            create_fine_payment(borrowing)
+
             return Response(
                 {"attention": f"Please,pay {fine}$ fine"}
             )
@@ -115,6 +122,7 @@ class BorrowingViewSet(ModelViewSet):
                        f"Borrowing id: {borrowing.id}\n"
                        f"Return date: {borrowing.actual_return_date}")
             send_message(message)
+
         return Response(
             {"detail": "Book returned in time, no fine required."},
             status=status.HTTP_200_OK
