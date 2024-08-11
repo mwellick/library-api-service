@@ -1,15 +1,22 @@
+import os
+import stripe
+from django.db import transaction
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import action
+from dotenv import load_dotenv
 from .models import Payment
 from .serializers import (
     PaymentSerializer,
     PaymentListSerializer,
     PaymentRetrieveSerializer
 )
+
+load_dotenv()
+
+
 
 
 class PaymentViewSet(ModelViewSet):
@@ -34,7 +41,17 @@ class PaymentViewSet(ModelViewSet):
 
 
 class PaymentSuccessView(APIView):
+    @transaction.atomic()
     def get(self, request, *args, **kwargs):
+        stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+        session_id = self.request.query_params.get("session_id")
+
+        retrieve_session = stripe.checkout.Session.retrieve(session_id)
+        if retrieve_session.payment_status == "paid":
+            payment = Payment.objects.get(session_id=session_id)
+            if payment:
+                payment.status = payment.Status.PAID
+                payment.save()
         return Response(
             {
                 "status": "Payment successful."

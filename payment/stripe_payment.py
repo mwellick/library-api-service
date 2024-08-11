@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 from .models import Payment
 from .calculations import (
     calculate_borrowing_amount,
-    borrow_days
+    borrow_days,
+    calculate_fine
 )
 
 load_dotenv()
@@ -17,6 +18,47 @@ stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 
 
 @transaction.atomic()
+def create_payment_session(borrowing, amount, payment_tipe):
+    checkout_session = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "unit_amount": int(amount * 100),
+                    "product_data": {
+                        "name": borrowing.book.title,
+                    },
+                },
+                "quantity": 1,
+            }
+        ],
+        mode="payment",
+        success_url=settings.BASE_URL + reverse(
+            "payments:payment-success"
+        ) + "?session_id={CHECKOUT_SESSION_ID}",
+        cancel_url=settings.BASE_URL + reverse("payments:payment-cancel"),
+    )
+
+    session_id = checkout_session.id
+    session_url = checkout_session.url
+
+    Payment.objects.create(
+        status=Payment.Status.PENDING,
+        type=payment_tipe,
+        borrowing=borrowing,
+        session_url=session_url,
+        session_id=session_id,
+        money_to_pay=amount
+    )
+
+    return JsonResponse(
+        {
+            "id": checkout_session.id
+        }
+    )
+
+
 def create_checkout_session(borrowing):
     days_of_borrow = borrow_days(
         borrowing.borrow_date,
@@ -27,39 +69,8 @@ def create_checkout_session(borrowing):
         days_of_borrow,
         borrowing.book.daily_fee
     )
-    checkout_session = stripe.checkout.Session.create(
-        payment_method_types=["card"],
-        line_items=[
-            {
-                "price_data": {
-                    "currency": "usd",
-                    "unit_amount": int(total_price * 100),
-                    "product_data": {
-                        "name": borrowing.book.title,
-                    },
-                },
-                "quantity": 1,
-            }
-        ],
-        mode="payment",
-        success_url=settings.BASE_URL + reverse("payments:payment-success"),
-        cancel_url=settings.BASE_URL + reverse("payments:payment-cancel"),
-    )
-
-    session_id = checkout_session.id
-    session_url = checkout_session.url
-
-    Payment.objects.create(
-        status=Payment.Status.PENDING,
-        type=Payment.Type.PAYMENT,
-        borrowing=borrowing,
-        session_url=session_url,
-        session_id=session_id,
-        money_to_pay=total_price
-    )
-
-    return JsonResponse(
-        {
-            "id": checkout_session.id
-        }
+    return create_payment_session(
+        borrowing,
+        total_price,
+        Payment.Type.PAYMENT
     )

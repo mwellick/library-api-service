@@ -10,7 +10,7 @@ router = routers.DefaultRouter()
 router.register("", PaymentViewSet)
 urlpatterns = [
     path(
-        "success?session_id={CHECKOUT_SESSION_ID}",
+        "success/",
         PaymentSuccessView.as_view(),
         name="payment-success"
     ),
