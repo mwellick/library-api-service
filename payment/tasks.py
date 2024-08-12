@@ -12,7 +12,7 @@ def check_session_for_expiration():
     stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 
     pending_payments = Payment.objects.filter(
-        status="PENDING"
+        status=Payment.Status.PENDING
     )
 
     for payment in pending_payments:
