@@ -7,15 +7,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from payment.calculations import calculate_fine
-from payment.stripe_payment import (
-    create_checkout_session,
-    create_fine_payment
-)
+from payment.stripe_payment import create_checkout_session, create_fine_payment
 from .serializers import (
     BorrowingSerializer,
     BorrowingListSerializer,
     BorrowingRetrieveSerializer,
-    ReturnBookSerializer
+    ReturnBookSerializer,
 )
 from payment.models import Payment
 from .models import Borrowing
@@ -31,25 +28,26 @@ class BorrowingViewSet(ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         active_payment = Payment.objects.filter(
-            borrowing__user=user,
-            status=Payment.Status.PENDING
+            borrowing__user=user, status=Payment.Status.PENDING
         )
 
         if active_payment.exists():
             raise ValidationError(
-                "New borrowing forbidden. "
+                "New borrowing forbidden. " 
                 "You have an uncompleted pending payment."
             )
 
         borrowing = serializer.save(user=user)
         create_checkout_session(borrowing)
-        message = (f"New borrowing has been created\n"
-                   f"Borrow id: {borrowing.id}\n"
-                   f"Author: {borrowing.book.author}\n"
-                   f"Book: {borrowing.book.title} (cover: {borrowing.book.cover})\n"
-                   f"User: {borrowing.user.email}\n"
-                   f"Return date {borrowing.expected_return_date}\n"
-                   f"Daily fee {borrowing.book.daily_fee}$")
+        message = (
+            f"New borrowing has been created\n"
+            f"Borrow id: {borrowing.id}\n"
+            f"Author: {borrowing.book.author}\n"
+            f"Book: {borrowing.book.title} (cover: {borrowing.book.cover})\n"
+            f"User: {borrowing.user.email}\n"
+            f"Return date {borrowing.expected_return_date}\n"
+            f"Daily fee {borrowing.book.daily_fee}$"
+        )
 
         send_message(message)
 
@@ -83,7 +81,7 @@ class BorrowingViewSet(ModelViewSet):
         methods=["POST"],
         detail=True,
         permission_classes=[IsAuthenticated],
-        url_path="return"
+        url_path="return",
     )
     @transaction.atomic()
     def return_book(self, request, pk=None):
@@ -91,14 +89,10 @@ class BorrowingViewSet(ModelViewSet):
         if borrowing.actual_return_date is not None:
             return Response(
                 {"detail": "You have already returned this book"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer = self.get_serializer(
-            borrowing,
-            data=request.data,
-            partial=True
-        )
+        serializer = self.get_serializer(borrowing, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -113,30 +107,32 @@ class BorrowingViewSet(ModelViewSet):
             fine = calculate_fine(
                 borrowing.expected_return_date,
                 borrowing.actual_return_date,
-                borrowing.book.daily_fee
+                borrowing.book.daily_fee,
             )
-            message = (f"{borrowing.user.email} has returned book "
-                       f"{borrowing.book.title}(cover: {borrowing.book.cover}) "
-                       f"from {borrowing.borrow_date}\n"
-                       f"Borrowing id: {borrowing.id}\n"
-                       f"Return date: {borrowing.actual_return_date}\n"
-                       f"{borrowing.user.email} has to pay {fine}$ fine")
+            message = (
+                f"{borrowing.user.email} has returned book "
+                f"{borrowing.book.title}(cover: {borrowing.book.cover}) "
+                f"from {borrowing.borrow_date}\n"
+                f"Borrowing id: {borrowing.id}\n"
+                f"Return date: {borrowing.actual_return_date}\n"
+                f"{borrowing.user.email} has to pay {fine}$ fine"
+            )
 
             send_message(message)
             create_fine_payment(borrowing)
 
-            return Response(
-                {"attention": f"Please,pay {fine}$ fine"}
-            )
+            return Response({"attention": f"Please,pay {fine}$ fine"})
         else:
-            message = (f"{borrowing.user.email} has returned book "
-                       f"{borrowing.book.title}(cover: {borrowing.book.cover}) "
-                       f"from {borrowing.borrow_date}\n"
-                       f"Borrowing id: {borrowing.id}\n"
-                       f"Return date: {borrowing.actual_return_date}")
+            message = (
+                f"{borrowing.user.email} has returned book "
+                f"{borrowing.book.title}(cover: {borrowing.book.cover}) "
+                f"from {borrowing.borrow_date}\n"
+                f"Borrowing id: {borrowing.id}\n"
+                f"Return date: {borrowing.actual_return_date}"
+            )
             send_message(message)
 
         return Response(
             {"detail": "Book returned in time, no fine required."},
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )

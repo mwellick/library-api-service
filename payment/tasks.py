@@ -11,14 +11,10 @@ load_dotenv()
 def check_session_for_expiration():
     stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 
-    pending_payments = Payment.objects.filter(
-        status=Payment.Status.PENDING
-    )
+    pending_payments = Payment.objects.filter(status=Payment.Status.PENDING)
 
     for payment in pending_payments:
-        stripe_session = stripe.checkout.Session.retrieve(
-            payment.session_id
-        )
+        stripe_session = stripe.checkout.Session.retrieve(payment.session_id)
         if stripe_session.payment_status == "expired":
             payment.status = payment.Status.EXPIRED
             payment.save()

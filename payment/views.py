@@ -12,7 +12,7 @@ from .models import Payment
 from .serializers import (
     PaymentSerializer,
     PaymentListSerializer,
-    PaymentRetrieveSerializer
+    PaymentRetrieveSerializer,
 )
 from .stripe_payment import create_checkout_session
 from .calculations import (
@@ -58,14 +58,13 @@ class PaymentSuccessView(APIView):
                 payment.save()
                 days_of_borrow = borrow_days(
                     payment.borrowing.borrow_date,
-                    payment.borrowing.expected_return_date
+                    payment.borrowing.expected_return_date,
                 )
                 total_amount = calculate_borrowing_amount(
-                    days_of_borrow,
-                    payment.borrowing.book.daily_fee
+                    days_of_borrow, payment.borrowing.book.daily_fee
                 )
                 message = (
-                    f"User {payment.borrowing.user.email}"
+                    f"User {payment.borrowing.user.email} "
                     f"has paid {total_amount}$ "
                     f"for borrowing a book:\n"
                     f"Title: {payment.borrowing.book.title},"
@@ -75,10 +74,7 @@ class PaymentSuccessView(APIView):
                 )
                 send_message(message)
 
-        return Response(
-            {"status": "Payment successful."},
-            status=status.HTTP_200_OK
-        )
+        return Response({"status": "Payment successful."}, status=status.HTTP_200_OK)
 
 
 class PaymentCancelView(APIView):
@@ -86,9 +82,11 @@ class PaymentCancelView(APIView):
 
     def get(self, request, *args, **kwargs):
         return Response(
-            {"status": "Payment canceled."
-                       "Please, complete your payment within 24 hours."},
-            status=status.HTTP_200_OK
+            {
+                "status": "Payment canceled."
+                "Please, complete your payment within 24 hours."
+            },
+            status=status.HTTP_200_OK,
         )
 
 
@@ -97,18 +95,14 @@ class PaymentRenewView(APIView):
 
     def get(self, request, *args, **kwargs):
         payment = Payment.objects.filter(
-            status=Payment.Status.EXPIRED,
-            borrowing__user=self.request.user
+            status=Payment.Status.EXPIRED, borrowing__user=self.request.user
         ).first()
         if payment:
-            create_checkout_session(
-                payment.borrowing
-            )
+            create_checkout_session(payment.borrowing)
             return Response(
                 {"status": "Your payment has successfully renewed"},
-                status=status.HTTP_200_OK
+                status=status.HTTP_200_OK,
             )
         return Response(
-            {"status": "No expired payments found"},
-            status=status.HTTP_204_NO_CONTENT
+            {"status": "No expired payments found"}, status=status.HTTP_204_NO_CONTENT
         )

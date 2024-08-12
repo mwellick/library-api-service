@@ -27,7 +27,11 @@ class BorrowingSerializer(serializers.ModelSerializer):
 class BorrowingListSerializer(serializers.ModelSerializer):
     book = serializers.CharField(source="book.title", read_only=True)
     user_id = serializers.CharField(source="user.pk", read_only=True)
-    payment_info = PaymentListSerializer(read_only=True, many=True, source="payments")
+    payment_info = PaymentListSerializer(
+        read_only=True,
+        many=True,
+        source="payments"
+    )
 
     class Meta:
         model = Borrowing
@@ -56,8 +60,7 @@ class BorrowingRetrieveSerializer(serializers.ModelSerializer):
             "user_email",
             "author",
             "book",
-            "book_cover"
-
+            "book_cover",
         ]
 
 
@@ -73,5 +76,4 @@ class ReturnBookSerializer(serializers.ModelSerializer):
             "user_email",
             "author",
             "book_cover",
-
         ]

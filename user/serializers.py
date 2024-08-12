@@ -6,11 +6,7 @@ from django.utils.translation import gettext as _
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = [
-            "id",
-            "email",
-            "password"
-        ]
+        fields = ["id", "email", "password"]
         read_only_fields = ["id", "is_staff"]
         extra_kwargs = {
             "password": {
@@ -37,18 +33,10 @@ class UserSerializer(serializers.ModelSerializer):
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = [
-            "first_name",
-            "last_name",
-            "email"
-        ]
+        fields = ["first_name", "last_name", "email"]
 
 
 class UserRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = [
-            "email",
-            "first_name",
-            "last_name"
-        ]
+        fields = ["email", "first_name", "last_name"]

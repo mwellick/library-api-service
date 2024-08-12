@@ -9,20 +9,44 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('borrowing', '0001_initial'),
+        ("borrowing", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Payment',
+            name="Payment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('Pending', 'pending'), ('Paid', 'paid')], max_length=7)),
-                ('type', models.CharField(choices=[('Payment', 'payment'), ('Fine', 'fine')], max_length=7)),
-                ('session_url', models.URLField(blank=True, null=True)),
-                ('session_id', models.TextField(blank=True, max_length=63, null=True)),
-                ('money_to_pay', models.DecimalField(decimal_places=2, max_digits=5)),
-                ('borrowing', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='borrowing.borrowing')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("Pending", "pending"), ("Paid", "paid")], max_length=7
+                    ),
+                ),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[("Payment", "payment"), ("Fine", "fine")], max_length=7
+                    ),
+                ),
+                ("session_url", models.URLField(blank=True, null=True)),
+                ("session_id", models.TextField(blank=True, max_length=63, null=True)),
+                ("money_to_pay", models.DecimalField(decimal_places=2, max_digits=5)),
+                (
+                    "borrowing",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="borrowing.borrowing",
+                    ),
+                ),
             ],
         ),
     ]

@@ -34,9 +34,9 @@ def create_payment_session(borrowing, amount, payment_type):
             }
         ],
         mode="payment",
-        success_url=settings.BASE_URL + reverse(
-            "payments:payment-success"
-        ) + "?session_id={CHECKOUT_SESSION_ID}",
+        success_url=settings.BASE_URL
+        + reverse("payments:payment-success")
+        + "?session_id={CHECKOUT_SESSION_ID}",
         cancel_url=settings.BASE_URL + reverse("payments:payment-cancel"),
     )
 
@@ -49,14 +49,10 @@ def create_payment_session(borrowing, amount, payment_type):
         borrowing=borrowing,
         session_url=session_url,
         session_id=session_id,
-        money_to_pay=amount
+        money_to_pay=amount,
     )
 
-    return JsonResponse(
-        {
-            "id": checkout_session.id
-        }
-    )
+    return JsonResponse({"id": checkout_session.id})
 
 
 @transaction.atomic()
@@ -64,17 +60,12 @@ def create_checkout_session(borrowing):
     days_of_borrow = borrow_days(
         borrowing.borrow_date,
         borrowing.expected_return_date,
-
     )
     total_price = calculate_borrowing_amount(
         days_of_borrow,
         borrowing.book.daily_fee
     )
-    return create_payment_session(
-        borrowing,
-        total_price,
-        Payment.Type.PAYMENT
-    )
+    return create_payment_session(borrowing, total_price, Payment.Type.PAYMENT)
 
 
 @transaction.atomic()
@@ -82,10 +73,6 @@ def create_fine_payment(borrowing):
     fine = calculate_fine(
         borrowing.expected_return_date,
         borrowing.actual_return_date,
-        borrowing.book.daily_fee
+        borrowing.book.daily_fee,
     )
-    return create_payment_session(
-        borrowing,
-        fine,
-        Payment.Type.FINE
-    )
+    return create_payment_session(borrowing, fine, Payment.Type.FINE)

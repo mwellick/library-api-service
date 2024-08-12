@@ -8,13 +8,13 @@ class Borrowing(models.Model):
     expected_return_date = models.DateField()
     actual_return_date = models.DateField(null=True, blank=True)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
 
     def __str__(self):
-        return (
-            f"Borrow id: {self.id}\n"
-            f"Book: {self.book.title}"
-        )
+        return f"Borrow id: {self.id}\n" f"Book: {self.book.title}"
 
     @property
     def is_active(self) -> bool:
@@ -22,21 +22,23 @@ class Borrowing(models.Model):
 
     @staticmethod
     def can_borrow(
-            book_inventory: int,
-            book_title: str,
-            book_cover: str,
-            user_id: int,
-            error_to_raise
+        book_inventory: int,
+        book_title: str,
+        book_cover: str,
+        user_id: int,
+        error_to_raise,
     ):
         if book_inventory == 0:
             raise error_to_raise("This book is not currently available")
         if Borrowing.objects.filter(
-                book__title=book_title,
-                book__cover=book_cover,
-                user_id=user_id,
-                actual_return_date__isnull=True
+            book__title=book_title,
+            book__cover=book_cover,
+            user_id=user_id,
+            actual_return_date__isnull=True,
         ).exists():
-            raise error_to_raise("You have already borrowed this book and haven't returned it yet.")
+            raise error_to_raise(
+                "You have already borrowed this book and haven't returned it yet."
+            )
 
         return {"book__inventory": book_inventory}
 
@@ -47,16 +49,16 @@ class Borrowing(models.Model):
                 self.book.title,
                 self.book.cover,
                 self.user.id,
-                ValueError
+                ValueError,
             )
 
     @transaction.atomic()
     def save(
-            self,
-            force_insert=False,
-            force_update=False,
-            using=None,
-            update_fields=None
+        self,
+        force_insert=False,
+        force_update=False,
+        using=None,
+        update_fields=None
     ):
         self.full_clean()
         if not self.pk:
@@ -65,9 +67,4 @@ class Borrowing(models.Model):
             self.book.inventory -= 1
             self.book.save(update_fields=["inventory"])
 
-        super(Borrowing, self).save(
-            force_insert,
-            force_update,
-            using,
-            update_fields
-        )
+        super(Borrowing, self).save(force_insert, force_update, using, update_fields)

@@ -9,15 +9,14 @@ from payment.calculations import calculate_fine
 def check_borrowings_overdue():
     now = timezone.now().date()
     overdue_borrowings = Borrowing.objects.filter(
-        expected_return_date__lt=now, actual_return_date__isnull=True
+        expected_return_date__lt=now,
+        actual_return_date__isnull=True
     )
 
     if overdue_borrowings.exists():
         for borrowing in overdue_borrowings:
             fine_amount = calculate_fine(
-                borrowing.expected_return_date,
-                now,
-                borrowing.book.daily_fee
+                borrowing.expected_return_date, now, borrowing.book.daily_fee
             )
             message = (
                 f"Overdue borrowing!\n"

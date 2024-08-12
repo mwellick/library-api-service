@@ -1,7 +1,15 @@
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAdminUser,
+    AllowAny
+)
 from .models import Book
-from .serializers import BookSerializer, BookListSerializer, BookRetrieveSerializer
+from .serializers import (
+    BookSerializer,
+    BookListSerializer,
+    BookRetrieveSerializer
+)
 
 
 class BookViewSet(ModelViewSet):

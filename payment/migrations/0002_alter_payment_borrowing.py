@@ -7,14 +7,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('borrowing', '0001_initial'),
-        ('payment', '0001_initial'),
+        ("borrowing", "0001_initial"),
+        ("payment", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='payment',
-            name='borrowing',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payments', to='borrowing.borrowing'),
+            model_name="payment",
+            name="borrowing",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="payments",
+                to="borrowing.borrowing",
+            ),
         ),
     ]
