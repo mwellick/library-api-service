@@ -18,7 +18,7 @@ stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 
 
 @transaction.atomic()
-def create_payment_session(borrowing, amount, payment_tipe):
+def create_payment_session(borrowing, amount, payment_type):
     checkout_session = stripe.checkout.Session.create(
         payment_method_types=["card"],
         line_items=[
@@ -45,7 +45,7 @@ def create_payment_session(borrowing, amount, payment_tipe):
 
     Payment.objects.create(
         status=Payment.Status.PENDING,
-        type=payment_tipe,
+        type=payment_type,
         borrowing=borrowing,
         session_url=session_url,
         session_id=session_id,

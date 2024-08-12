@@ -76,7 +76,7 @@ class PaymentRenewView(APIView):
 
     def get(self, request, *args, **kwargs):
         payment = Payment.objects.filter(
-            status="EXPIRED",
+            status=Payment.Status.EXPIRED,
             borrowing__user=self.request.user
         ).first()
         if payment:

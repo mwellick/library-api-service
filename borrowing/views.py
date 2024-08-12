@@ -1,6 +1,7 @@
 from django.utils import timezone
 from rest_framework import status
 from django.db import transaction
+from rest_framework.exceptions import ValidationError
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
@@ -16,6 +17,7 @@ from .serializers import (
     BorrowingRetrieveSerializer,
     ReturnBookSerializer
 )
+from payment.models import Payment
 from .models import Borrowing
 from tg_notifications.notifications import send_message
 
@@ -27,9 +29,20 @@ class BorrowingViewSet(ModelViewSet):
 
     @transaction.atomic()
     def perform_create(self, serializer):
-        borrowing = serializer.save(user=self.request.user)
-        create_checkout_session(borrowing)
+        user = self.request.user
+        active_payment = Payment.objects.filter(
+            borrowing__user=user,
+            status=Payment.Status.PENDING
+        )
 
+        if active_payment.exists():
+            raise ValidationError(
+                "New borrowing forbidden. "
+                "You have an uncompleted pending payment."
+            )
+
+        borrowing = serializer.save(user=user)
+        create_checkout_session(borrowing)
         message = (f"New borrowing has been created\n"
                    f"Borrow id: {borrowing.id}\n"
                    f"Author: {borrowing.book.author}\n"
