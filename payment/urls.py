@@ -3,7 +3,8 @@ from rest_framework import routers
 from .views import (
     PaymentViewSet,
     PaymentSuccessView,
-    PaymentCancelView
+    PaymentCancelView,
+    PaymentRenewView,
 )
 
 router = routers.DefaultRouter()
@@ -18,6 +19,11 @@ urlpatterns = [
         "cancel/",
         PaymentCancelView.as_view(),
         name="payment-cancel"
+    ),
+    path(
+        "renew/",
+        PaymentRenewView.as_view(),
+        name="payment-renew"
     ),
     path("", include(router.urls)),
 

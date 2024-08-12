@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from dotenv import load_dotenv
+from .stripe_payment import create_checkout_session
 from .models import Payment
 from .serializers import (
     PaymentSerializer,
@@ -59,10 +60,35 @@ class PaymentSuccessView(APIView):
 
 
 class PaymentCancelView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, *args, **kwargs):
         return Response(
             {
                 "status": "Payment canceled.Please, complete your payment within 24 hours."
             },
             status=status.HTTP_200_OK
+        )
+
+
+class PaymentRenewView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        payment = Payment.objects.filter(
+            status="EXPIRED",
+            borrowing__user=self.request.user
+        ).first()
+        if payment:
+            create_checkout_session(
+                payment.borrowing
+            )
+            return Response(
+                {"status": "Your payment has successfully renewed"},
+                status=status.HTTP_200_OK
+            )
+
+        return Response(
+            {"status": "No expired payments found"},
+            status=status.HTTP_204_NO_CONTENT
         )
