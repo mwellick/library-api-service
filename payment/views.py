@@ -7,6 +7,12 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from dotenv import load_dotenv
+from drf_spectacular.utils import (
+    extend_schema_view,
+    extend_schema,
+    OpenApiParameter,
+    OpenApiExample,
+)
 from tg_notifications.notifications import send_message
 from .models import Payment
 from .serializers import (
@@ -23,6 +29,28 @@ from .calculations import (
 load_dotenv()
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="Get list of all payments",
+        description="Authenticated user can see own payments."
+    ),
+    retrieve=extend_schema(
+        summary="Get a detailed info about specific payment",
+        description="Authenticated user can get info about own payment",
+    ),
+    update=extend_schema(
+        summary="Update info about specific payment",
+        description="Admin can manage payments if error from user's side occurs",
+    ),
+    partial_update=extend_schema(
+        summary="Partial update of specific borrowing",
+        description="Admin can make a partial update of payment if error from user's side occurs",
+    ),
+    destroy=extend_schema(
+        summary="Delete a payment",
+        description="Admin can delete users payments",
+    ),
+)
 class PaymentViewSet(ModelViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
@@ -45,6 +73,12 @@ class PaymentViewSet(ModelViewSet):
 
 
 class PaymentSuccessView(APIView):
+    @extend_schema(
+        summary="Get info about successful payment",
+        description="Authenticated user can get "
+                    "info about successful payment and system changes payment status",
+
+    )
     @transaction.atomic()
     def get(self, request, *args, **kwargs):
         stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
@@ -80,11 +114,15 @@ class PaymentSuccessView(APIView):
 class PaymentCancelView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Get info about canceled payment",
+        description="Authenticated user can delay own payment for 24 hours",
+    )
     def get(self, request, *args, **kwargs):
         return Response(
             {
                 "status": "Payment canceled."
-                "Please, complete your payment within 24 hours."
+                          "Please, complete your payment within 24 hours."
             },
             status=status.HTTP_200_OK,
         )
@@ -93,6 +131,10 @@ class PaymentCancelView(APIView):
 class PaymentRenewView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Renew payment",
+        description="Authenticated user can renew own payment if it is expired",
+    )
     def get(self, request, *args, **kwargs):
         payment = Payment.objects.filter(
             status=Payment.Status.EXPIRED, borrowing__user=self.request.user

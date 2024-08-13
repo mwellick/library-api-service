@@ -3,9 +3,15 @@ from rest_framework import status
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from drf_spectacular.utils import (
+    extend_schema_view,
+    extend_schema,
+    OpenApiParameter,
+    OpenApiExample,
+)
 from payment.calculations import calculate_fine
 from payment.stripe_payment import create_checkout_session, create_fine_payment
 from .serializers import (
@@ -19,10 +25,40 @@ from .models import Borrowing
 from tg_notifications.notifications import send_message
 
 
+@extend_schema_view(
+    create=extend_schema(
+        summary="Create a borrowing",
+        description="Authenticated user can create a borrowing "
+                    "and system automatically creates a payment for created borrowing"
+    ),
+    retrieve=extend_schema(
+        summary="Get a detailed info about specific borrowing",
+        description="Authenticated user can get info about own borrowing",
+    ),
+    update=extend_schema(
+        summary="Update info about specific borrowing",
+        description="Admin can manage borrowings if error from user's side occurs",
+    ),
+    partial_update=extend_schema(
+        summary="Partial update of specific borrowing",
+        description="Admin can make a partial update of borrowings if error from user's side occurs",
+    ),
+    destroy=extend_schema(
+        summary="Delete a borrowing",
+        description="Admin can delete users borrowings",
+    ),
+)
 class BorrowingViewSet(ModelViewSet):
     queryset = Borrowing.objects.all()
     serializer_class = BorrowingSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action in ["create", "list", "retrieve"]:
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAdminUser]
+        return [permission() for permission in permission_classes]
 
     @transaction.atomic()
     def perform_create(self, serializer):
@@ -33,7 +69,7 @@ class BorrowingViewSet(ModelViewSet):
 
         if active_payment.exists():
             raise ValidationError(
-                "New borrowing forbidden. " 
+                "New borrowing forbidden. "
                 "You have an uncompleted pending payment."
             )
 
@@ -77,6 +113,33 @@ class BorrowingViewSet(ModelViewSet):
             return ReturnBookSerializer
         return BorrowingSerializer
 
+    @extend_schema(
+        methods=["GET"],
+        summary="Get list of all borrowings",
+        description="Authenticated user can get a list of all borrowings",
+        parameters=[
+            OpenApiParameter(
+                name="is_active",
+                description="Filter by active_status",
+                type=bool,
+                examples=[OpenApiExample("Example")],
+            ),
+            OpenApiParameter(
+                name="user_id",
+                description="Filter by user id",
+                type=int,
+                examples=[OpenApiExample("Example")],
+            ),
+        ],
+
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Get a specific borrowing for return",
+        description="Authenticated user can get a list of all borrowings",
+    )
     @action(
         methods=["POST"],
         detail=True,
