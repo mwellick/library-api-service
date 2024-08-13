@@ -9,9 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from dotenv import load_dotenv
 from drf_spectacular.utils import (
     extend_schema_view,
-    extend_schema,
-    OpenApiParameter,
-    OpenApiExample,
+    extend_schema
 )
 from tg_notifications.notifications import send_message
 from .models import Payment

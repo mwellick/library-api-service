@@ -35,14 +35,6 @@ from tg_notifications.notifications import send_message
         summary="Get a detailed info about specific borrowing",
         description="Authenticated user can get info about own borrowing",
     ),
-    update=extend_schema(
-        summary="Update info about specific borrowing",
-        description="Admin can manage borrowings if error from user's side occurs",
-    ),
-    partial_update=extend_schema(
-        summary="Partial update of specific borrowing",
-        description="Admin can make a partial update of borrowings if error from user's side occurs",
-    ),
     destroy=extend_schema(
         summary="Delete a borrowing",
         description="Admin can delete users borrowings",
