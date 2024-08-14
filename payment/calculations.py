@@ -1,6 +1,7 @@
 from datetime import date
+from decimal import Decimal
 
-FINE_MULTIPLIER = 2
+FINE_MULTIPLIER = Decimal("2.0")
 
 
 def borrow_days(
@@ -23,9 +24,9 @@ def calculate_fine(
         overdue: date,
         book_daily_fee: float
 ) -> float:
-    fine = 0.0
+    fine = Decimal("0.0")
     days_late = (overdue - expected_return_date).days
     if days_late > 0:
-        fine += days_late * (book_daily_fee * FINE_MULTIPLIER)
+        fine += Decimal(days_late) * (Decimal(book_daily_fee) * FINE_MULTIPLIER)
 
     return round(fine, 2)

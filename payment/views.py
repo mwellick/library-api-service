@@ -21,7 +21,8 @@ from .serializers import (
 from .stripe_payment import create_checkout_session
 from .calculations import (
     calculate_borrowing_amount,
-    borrow_days
+    borrow_days,
+    calculate_fine
 )
 
 load_dotenv()
@@ -88,6 +89,7 @@ class PaymentSuccessView(APIView):
             if payment:
                 payment.status = payment.Status.PAID
                 payment.save()
+            if payment.type == Payment.Type.PAYMENT:
                 days_of_borrow = borrow_days(
                     payment.borrowing.borrow_date,
                     payment.borrowing.expected_return_date,
@@ -105,6 +107,13 @@ class PaymentSuccessView(APIView):
                     f"Expected return date: {payment.borrowing.expected_return_date}"
                 )
                 send_message(message)
+            elif payment.type == Payment.Type.FINE:
+                fine = payment.money_to_pay
+                fine_message = (
+                    f"User {payment.borrowing.user.email} has successfully paid {fine}$ fine"
+                    f" for late return of the book from borrowing ID: {payment.borrowing.id} "
+                )
+                send_message(fine_message)
 
         return Response({"status": "Payment successful."}, status=status.HTTP_200_OK)
 

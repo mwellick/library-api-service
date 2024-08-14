@@ -164,7 +164,7 @@ class BorrowingViewSet(ModelViewSet):
                 borrowing.actual_return_date,
                 borrowing.book.daily_fee,
             )
-            message = (
+            fine_message = (
                 f"{borrowing.user.email} has returned book "
                 f"{borrowing.book.title}(cover: {borrowing.book.cover}) "
                 f"from {borrowing.borrow_date}\n"
@@ -173,7 +173,7 @@ class BorrowingViewSet(ModelViewSet):
                 f"{borrowing.user.email} has to pay {fine}$ fine"
             )
 
-            send_message(message)
+            send_message(fine_message)
             create_fine_payment(borrowing)
 
             return Response({"attention": f"Please,pay {fine}$ fine"})

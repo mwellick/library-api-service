@@ -22,10 +22,10 @@ def check_borrowings_overdue():
                 f"Overdue borrowing!\n"
                 f"Borrow id: {borrowing.id}\n"
                 f"User: {borrowing.user.email}\n"
-                f"Book: {borrowing.book.title}, "
+                f"Book: {borrowing.book.title},\n"
                 f"Author: {borrowing.book.author}, "
-                f"cover({borrowing.book.cover})\n,"
-                f"User was supposed to return this book on "
+                f"cover({borrowing.book.cover})\n"
+                f"User was supposed to return this book on: "
                 f"{borrowing.expected_return_date}\n"
                 f"User has to pay {fine_amount}$ fine"
             )
