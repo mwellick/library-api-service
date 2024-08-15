@@ -180,5 +180,14 @@ CELERY_TIMEZONE = "Europe/Kiev"
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_BEAT_SCHEDULE = {
+    "checker_of_borrowings_overdue": {
+        "task": "borrowing.tasks.check_borrowings_overdue",
+        "schedule": timedelta(seconds=30),
+    },
+    "checker_of_expired_payments": {
+        "task": "payment.tasks.check_session_for_expiration",
+        "schedule": timedelta(minutes=1),
+    },
 
-CELERY_BEAT_SCHEDULE = {}
+}
