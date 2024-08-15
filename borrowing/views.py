@@ -73,7 +73,7 @@ class BorrowingViewSet(ModelViewSet):
             f"Author: {borrowing.book.author}\n"
             f"Book: {borrowing.book.title} (cover: {borrowing.book.cover})\n"
             f"User: {borrowing.user.email}\n"
-            f"Return date {borrowing.expected_return_date}\n"
+            f"Return date: {borrowing.expected_return_date}\n"
             f"Daily fee {borrowing.book.daily_fee}$"
         )
 
