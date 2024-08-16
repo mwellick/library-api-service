@@ -110,6 +110,31 @@ class AuthenticatedBorrowingApiTest(TestCase):
         res = self.client.delete(detail_url(self.borrowing_1.id))
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_return_book(self):
+        url = f"/api/borrowings/{self.borrowing_1.id}/return/"
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["detail"], "Book returned in time, no fine required.")
+        self.assertEqual(self.book_1.inventory, 1)
+
+    def test_already_returned_book(self):
+        url = f"/api/borrowings/{self.borrowing_1.id}/return/"
+        self.borrowing_1.actual_return_date = timezone.now().date()
+        self.borrowing_1.save()
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.data["detail"],  "You have already returned this book")
+
+    def test_return_book_late_with_fine(self):
+        self.borrowing_1.expected_return_date = timezone.now() - timedelta(days=1)
+        self.borrowing_1.save()
+        url = f"/api/borrowings/{self.borrowing_1.id}/return/"
+        res = self.client.post(url)
+        self.borrowing_1.actual_return_date = timezone.now()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn("Please,pay", res.data["attention"])
+        self.assertIsNotNone(self.borrowing_1.actual_return_date)
+
 
 class AdminBorrowingApiTest(TestCase):
 
