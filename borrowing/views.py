@@ -43,13 +43,14 @@ from tg_notifications.notifications import send_message
 class BorrowingViewSet(ModelViewSet):
     queryset = Borrowing.objects.all()
     serializer_class = BorrowingSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
-        if self.action in ["create", "list", "retrieve"]:
+        if self.action in ["destroy"]:
+            permission_classes = [IsAdminUser]
+        elif self.action in ["create", "list", "retrieve", "return_book"]:
             permission_classes = [IsAuthenticated]
         else:
-            permission_classes = [IsAdminUser]
+            permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
     @transaction.atomic()
@@ -127,6 +128,16 @@ class BorrowingViewSet(ModelViewSet):
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        borrowing = self.get_object()
+        user = self.request.user
+
+        if not user.is_staff and borrowing.user == user:
+            return Response(
+                {"attention": "You don't have permission to change borrowing info"}
+            )
+        return super().update(request, *args, **kwargs)
 
     @extend_schema(
         summary="Get a specific borrowing for return",

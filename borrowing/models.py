@@ -14,7 +14,7 @@ class Borrowing(models.Model):
     )
 
     def __str__(self):
-        return f"Borrow id: {self.id}\n" f"Book: {self.book.title}"
+        return f"Borrow id: {self.id}, Book: {self.book.title}"
 
     @property
     def is_active(self) -> bool:
