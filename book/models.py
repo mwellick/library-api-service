@@ -2,6 +2,9 @@ from django.db import models
 
 
 class Book(models.Model):
+    class Meta:
+        ordering = ["id"]
+
     class CoverType(models.TextChoices):
         HARD = ("Hard", "hard")
         SOFT = ("Soft", "soft")
