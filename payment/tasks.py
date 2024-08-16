@@ -13,6 +13,7 @@ def check_session_for_expiration():
     stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 
     pending_payments = Payment.objects.filter(status=Payment.Status.PENDING)
+    expired_found = False
 
     for payment in pending_payments:
         stripe_session = stripe.checkout.Session.retrieve(payment.session_id)
@@ -20,6 +21,9 @@ def check_session_for_expiration():
             payment.status = payment.Status.EXPIRED
             payment.save()
             message = f"Found expired session: SESSION_ID {payment.id}"
+            expired_found = True
             send_message(message)
-        else:
-            send_message("No expired sessions found!")
+
+    if not expired_found:
+        send_message("No expired sessions found!")
+

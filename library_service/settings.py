@@ -183,11 +183,11 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_BEAT_SCHEDULE = {
     "checker_of_borrowings_overdue": {
         "task": "borrowing.tasks.check_borrowings_overdue",
-        "schedule": timedelta(seconds=30),
+        "schedule": timedelta(hours=1),
     },
     "checker_of_expired_payments": {
         "task": "payment.tasks.check_session_for_expiration",
-        "schedule": timedelta(minutes=1),
+        "schedule": timedelta(days=1),
     },
 
 }
