@@ -65,3 +65,24 @@ python manage.py runserver
 
 **email**: `qwe@qwerty.com`  
 **password**: `Qwerty123`
+
+## DB Structure
+![Api_Diagram](screenshots/library_service_diagram.png)
+
+## Screenshots
+![Api_Diagram](screenshots/book_list.png)
+![Api_Diagram](screenshots/book_detail.png)
+![Api_Borrowing](screenshots/borrowing_list.png)
+![Api_Borrowing](screenshots/borrowing_detail.png)
+![Api_Payment](screenshots/payment_list.png)
+![Api_payment](screenshots/payment_detail.png)
+![Api_Payment](screenshots/stripe_payment.png)
+![Api_Payment](screenshots/payment_successful.png)
+![Api_Pyment](screenshots/cancel_payment.png)
+![Api_Telegram](screenshots/telegram.png)
+![Api_Swagger](screenshots/swagger_doc.png)
+![Api_Swagger](screenshots/swagger_doc_2.png)
+
+
+## Copyright
+Copyright (c) 2024 Michael Korotia
