@@ -21,8 +21,7 @@ from .serializers import (
 from .stripe_payment import create_checkout_session
 from .calculations import (
     calculate_borrowing_amount,
-    borrow_days,
-    calculate_fine
+    borrow_days
 )
 
 load_dotenv()
@@ -74,9 +73,7 @@ class PaymentViewSet(ModelViewSet):
 class PaymentSuccessView(APIView):
     @extend_schema(
         summary="Get info about successful payment",
-        description="Authenticated user can get "
-                    "info about successful payment and system changes payment status",
-
+        description="Authenticated user can get info about successful payment and system changes payment status",
     )
     @transaction.atomic()
     def get(self, request, *args, **kwargs):
@@ -153,5 +150,6 @@ class PaymentRenewView(APIView):
                 status=status.HTTP_200_OK,
             )
         return Response(
-            {"status": "No expired payments found"}, status=status.HTTP_204_NO_CONTENT
+            {"status": "No expired payments found"},
+            status=status.HTTP_204_NO_CONTENT
         )

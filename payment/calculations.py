@@ -28,5 +28,4 @@ def calculate_fine(
     days_late = (overdue - expected_return_date).days
     if days_late > 0:
         fine += Decimal(days_late) * (Decimal(book_daily_fee) * FINE_MULTIPLIER)
-
     return round(fine, 2)

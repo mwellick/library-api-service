@@ -3,7 +3,7 @@ from rest_framework import status
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from drf_spectacular.utils import (
@@ -135,7 +135,8 @@ class BorrowingViewSet(ModelViewSet):
 
         if not user.is_staff and borrowing.user == user:
             return Response(
-                {"attention": "You don't have permission to change borrowing info"}
+                {"attention": "You don't have permission "
+                              "to change borrowing info"}
             )
         return super().update(request, *args, **kwargs)
 
@@ -158,7 +159,11 @@ class BorrowingViewSet(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer = self.get_serializer(borrowing, data=request.data, partial=True)
+        serializer = self.get_serializer(
+            borrowing,
+            data=request.data,
+            partial=True
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
 

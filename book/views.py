@@ -23,7 +23,7 @@ from .serializers import (
     ),
     retrieve=extend_schema(
         summary="Get a detailed info about specific book",
-        description="Admin and authenticated user can get a detailed info about book",
+        description="Authenticated user can get a detailed info about book",
     ),
     update=extend_schema(
         summary="Update info about specific book",
@@ -52,7 +52,13 @@ class BookViewSet(ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
-        if self.action in ["create", "update", "retrieve", "partial_update", "destroy"]:
+        if self.action in [
+            "create",
+            "update",
+            "retrieve",
+            "partial_update",
+            "destroy"
+        ]:
             return BookRetrieveSerializer
         elif self.action == "list":
             return BookListSerializer
@@ -65,4 +71,4 @@ class BookViewSet(ModelViewSet):
 
     )
     def list(self, request, *args, **kwargs):
-        return super().list(request,*args,**kwargs)
+        return super().list(request, *args, **kwargs)
